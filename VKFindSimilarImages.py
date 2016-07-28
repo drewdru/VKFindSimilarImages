@@ -1,7 +1,5 @@
 import vk
 import json
-# import urllib
-from PIL import Image
 
 from VKDownloadImage import downloadImage
 from Similar import getThumbnail, findSimilarImages

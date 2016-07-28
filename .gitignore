@@ -1,3 +1,5 @@
-local_*
 img/*
+__pycache__/*
+
+local_*
 *.txt

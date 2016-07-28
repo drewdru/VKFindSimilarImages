@@ -19,14 +19,14 @@ imgDir = './img/'
 thumbDir = './thumb/'
 for album in albums['items']:
     try:
-    imageList = os.listdir(imgDir)
+        imageList = os.listdir(imgDir)
     for inImage in imageList:
         os.remove(imgDir + inImage)
     except Exception:
         pass
 
     try:
-    imageList = os.listdir(thumbDir)
+        imageList = os.listdir(thumbDir)
     for inImage in imageList:
         os.remove(thumbDir + inImage)
     except Exception:

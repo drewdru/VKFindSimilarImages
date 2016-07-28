@@ -19,6 +19,5 @@ photos = api.photos.get(owner_id = 'ALBUM_OWNER',
 downloadImage(photos['items'], isBig = False)
 
 size = 32,32
-imgDir = './img/'
-getThumbnail(imgDir, size)
-findSimilarImages(imgDir, size)
+getThumbnail('./img/', size)
+findSimilarImages('./thumb/')

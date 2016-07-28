@@ -1,6 +1,27 @@
 from PIL import Image
 import os
 import math
+import json
+
+def saveURLtoSimilarImages(imgIndx1, imgIndx2):
+    imgInfoFile = open('imgInfo.json', 'r+')
+    imgInfo = json.load(imgInfoFile)
+    imgInfoFile.close()
+
+    img1 = ('https://vk.com/photo' +
+        str(imgInfo['img'][int(imgIndx1)]['owner_id']) +
+        '_' +
+    	str(imgInfo['img'][int(imgIndx1)]['id']))
+    img2 = ('https://vk.com/photo' +
+        str(imgInfo['img'][int(imgIndx2)]['owner_id']) +
+        '_' +
+    	str(imgInfo['img'][int(imgIndx2)]['id']))
+    print(img1)
+    print(img2)
+    f = open('similarImages.txt','w+')
+    f.write(img1 + '\n' + img2+ '\n\n')
+    f.close()
+    
 
 def getThumbnail(imgDir, size):
     imageList = os.listdir(imgDir)
@@ -40,7 +61,4 @@ def findSimilarImages(imgDir):
             img2 = Image.open(imgDir + inImage2)
             rmsDiff = rmsDifference(img1.load(), img2.load(), img1.size)
             if rmsDiff < 1:
-                print(rmsDiff)
-                print(inImage1, inImage2)
-                # pass
-                # saveURLtoSimilarImages
+                saveURLtoSimilarImages(int(inImage1.split('.')[0]), int(inImage2.split('.')[0]))

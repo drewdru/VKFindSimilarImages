@@ -29,5 +29,5 @@ def downloadImage(images, isBig = True):
         except Exception as inst:
             print(inst)
             print('error:' + json.dumps(image['sizes'][0]['src']))
-    with open('imgInfo.txt', 'w+') as outfile:
+    with open('imgInfo.json', 'w+') as outfile:
         json.dump(imgInfo, outfile, ensure_ascii=False)

@@ -1,5 +1,6 @@
 img/*
 __pycache__/*
+thumb/*
 
 local_*
 *.txt

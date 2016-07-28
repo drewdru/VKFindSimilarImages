@@ -12,12 +12,28 @@ session = vk.AuthSession(app_id = 'APP_ID',
 api = vk.API(session, v='5.53', timeout=10)
 print('api is connected')
 
-photos = api.photos.get(owner_id = 'ALBUM_OWNER', 
-    album_id = 'ALBUM_ID', 
-    photo_sizes='1')
+OWNER_ID = 'OWNER_ID'
+albums = api.photos.getAlbums(owner_id = OWNER_ID)
 
-downloadImage(photos['items'], isBig = False)
+imgDir = './img/'
+thumbDir = './thumb/'
+for album in albums['items']:
+    imageList = os.listdir(imgDir)
+    for inImage in imageList:
+        os.remove(imgDir + inImage)
 
-size = 32,32
-getThumbnail('./img/', size)
-findSimilarImages('./thumb/')
+    imageList = os.listdir(thumbDir)
+    for inImage in imageList:
+        os.remove(thumbDir + inImage)
+    
+    os.remove('./imgInfo.json')
+
+    photos = api.photos.get(owner_id = OWNER_ID, 
+        album_id = album['id'], 
+        photo_sizes='1')
+
+    downloadImage(photos['items'], isBig = False)
+
+    size = 32,32
+    getThumbnail(imgDir, size)
+    findSimilarImages(thumbDir)

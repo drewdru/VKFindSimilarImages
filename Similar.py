@@ -42,14 +42,9 @@ def rmsDifference(img1, img2, size):
             try:
                 dif = img1[i,j] - img2[i,j]
                 res += pow(dif, 2)
-                # for k in range(3):
-                #     dif = img1[i,j][k] - img2[i,j][k]
-                #     res[k] += pow(dif, 2)
             except IndexError:
                 break      
     res = math.sqrt( res ) / 256
-    # for k in range(3):
-    #     res[k] = math.sqrt( res[k] ) / 256
     return res
 
 def findSimilarImages(imgDir):

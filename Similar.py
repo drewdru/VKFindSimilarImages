@@ -18,7 +18,7 @@ def saveURLtoSimilarImages(imgIndx1, imgIndx2):
     	str(imgInfo['img'][int(imgIndx2)]['id']))
     print(img1)
     print(img2)
-    f = open('similarImages.txt','w+')
+    f = open('similarImages.txt','a+')
     f.write(img1 + '\n' + img2+ '\n\n')
     f.close()
     

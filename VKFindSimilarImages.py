@@ -18,15 +18,24 @@ albums = api.photos.getAlbums(owner_id = OWNER_ID)
 imgDir = './img/'
 thumbDir = './thumb/'
 for album in albums['items']:
+    try:
     imageList = os.listdir(imgDir)
     for inImage in imageList:
         os.remove(imgDir + inImage)
+    except Exception:
+        pass
 
+    try:
     imageList = os.listdir(thumbDir)
     for inImage in imageList:
         os.remove(thumbDir + inImage)
+    except Exception:
+        pass
     
-    os.remove('./imgInfo.json')
+    try:
+        os.remove('./imgInfo.json')
+    except FileNotFoundError:
+        pass
 
     photos = api.photos.get(owner_id = OWNER_ID, 
         album_id = album['id'], 

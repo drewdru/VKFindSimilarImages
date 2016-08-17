@@ -4,10 +4,13 @@ import math
 import json
 
 def saveURLtoSimilarImages(imgIndx1, imgIndx2):
+    ''' Save similar images to similarImages.txt '''    
     imgInfoFile = open('imgInfo.json', 'r+')
     imgInfo = json.load(imgInfoFile)
     imgInfoFile.close()
-
+    # print(imgIndx1,imgIndx2)
+    # print(imgInfo['img'][int(imgIndx1)])
+    # print(imgInfo['img'][int(imgIndx2)])
     img1 = ('https://vk.com/photo' +
         str(imgInfo['img'][int(imgIndx1)]['owner_id']) +
         '_' +
@@ -23,19 +26,17 @@ def saveURLtoSimilarImages(imgIndx1, imgIndx2):
     f.close()
     
 
-def getThumbnail(imgDir, size):
+def getThumbnails(imgDir, thumbDir, size):
+    ''' Getting thumbnails  '''
     imageList = os.listdir(imgDir)
     for inImage in imageList:
         img = Image.open(imgDir + inImage)
         img.thumbnail(size)
         img = img.convert(mode='L')
-        img.save('./thumb/' + inImage, "JPEG")
+        img.save(thumbDir + inImage, "JPEG")
 
 def rmsDifference(img1, img2, size):
-    '''
-    images root mean square difference
-    '''
-    # res = [0, 0, 0]   
+    ''' Return a root mean square difference of two images '''
     res = 0 
     for i in range(size[0]):
         for j in range(size[1]):
@@ -48,6 +49,7 @@ def rmsDifference(img1, img2, size):
     return res
 
 def findSimilarImages(imgDir):
+    ''' findSimilarImages '''
     imageList = os.listdir(imgDir)
     for index, inImage1 in enumerate(imageList):
         img1 = Image.open(imgDir + inImage1)

@@ -12,13 +12,13 @@ def saveURLtoSimilarImages(imgIndx1, imgIndx2):
     # print(imgInfo['img'][int(imgIndx1)])
     # print(imgInfo['img'][int(imgIndx2)])
     img1 = ('https://vk.com/photo' +
-        str(imgInfo['img'][int(imgIndx1)]['owner_id']) +
+        str(imgInfo['img'][imgIndx1]['owner_id']) +
         '_' +
-    	str(imgInfo['img'][int(imgIndx1)]['id']))
+    	str(imgInfo['img'][imgIndx1]['id']))
     img2 = ('https://vk.com/photo' +
-        str(imgInfo['img'][int(imgIndx2)]['owner_id']) +
+        str(imgInfo['img'][imgIndx2]['owner_id']) +
         '_' +
-    	str(imgInfo['img'][int(imgIndx2)]['id']))
+    	str(imgInfo['img'][imgIndx2]['id']))
     print(img1)
     print(img2)
     f = open('similarImages.txt','a+')
@@ -58,4 +58,4 @@ def findSimilarImages(imgDir):
             img2 = Image.open(imgDir + inImage2)
             rmsDiff = rmsDifference(img1.load(), img2.load(), img1.size)
             if rmsDiff < 1:
-                saveURLtoSimilarImages(int(inImage1.split('.')[0]), int(inImage2.split('.')[0]))
+                saveURLtoSimilarImages(inImage1.split('.')[0], inImage2.split('.')[0])

@@ -4,27 +4,23 @@ import math
 import json
 
 def saveURLtoSimilarImages(imgIndx1, imgIndx2):
-    ''' Save similar images to similarImages.txt '''    
-    imgInfoFile = open('imgInfo.json', 'r+')
-    imgInfo = json.load(imgInfoFile)
-    imgInfoFile.close()
-    # print(imgIndx1,imgIndx2)
-    # print(imgInfo['img'][int(imgIndx1)])
-    # print(imgInfo['img'][int(imgIndx2)])
-    img1 = ('https://vk.com/photo' +
-        str(imgInfo['img'][imgIndx1]['owner_id']) +
-        '_' +
-    	str(imgInfo['img'][imgIndx1]['id']))
-    img2 = ('https://vk.com/photo' +
-        str(imgInfo['img'][imgIndx2]['owner_id']) +
-        '_' +
-    	str(imgInfo['img'][imgIndx2]['id']))
-    print(img1)
-    print(img2)
-    f = open('similarImages.txt','a+')
-    f.write(img1 + '\n' + img2+ '\n\n')
-    f.close()
+    ''' Save similar images to similarImages.txt '''   
+
+    imgInfoFile = open('imgInfo.json', 'r')
+    imgInfo = json.load(imgInfoFile)  
+    imgInfoFile.close()  
+    img1 = (str(imgInfo['img'][imgIndx1]['owner_id']) 
+        + '_' 
+        + str(imgInfo['img'][imgIndx1]['id']))
+    img2 = (str(imgInfo['img'][imgIndx2]['owner_id']) 
+        + '_' 
+        + str(imgInfo['img'][imgIndx2]['id']))
+    print('https://vk.com/photo'+img1)
+    print('https://vk.com/photo'+img2)
     
+    f = open('similarImages.txt','a+')
+    f.write(img1 + ',' + img2 + ',\n')
+    f.close()
 
 def getThumbnails(imgDir, thumbDir, size):
     ''' Getting thumbnails  '''

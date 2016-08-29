@@ -1,9 +1,10 @@
 img/*
-__pycache__/*
 thumb/*
+deleteImg/*
+
 .vscode/*
+__pycache__/*
 
 local_*
 *.txt
-
-imgInfo.json
+*.json

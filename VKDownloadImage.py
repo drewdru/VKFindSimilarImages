@@ -1,6 +1,8 @@
 import json
-import urllib
 import sys
+import urllib
+
+
 def downloadImage(images, imgDir, imgInfoFile, isBig = True):
     ''' Download images from vk.com 
         return images which not found in vk servers

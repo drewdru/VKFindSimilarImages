@@ -1,22 +1,18 @@
-from PIL import Image
-import os
-import math
 import json
+import math
+import os
 
-def saveURLtoSimilarImages(imgIndx1, imgIndx2):
-    ''' Save similar images to similarImages.txt '''   
+from PIL import Image
+from vkBase.views.images import ImagesView
 
-    imgInfoFile = open('imgInfo.json', 'r')
-    imgInfo = json.load(imgInfoFile)  
-    imgInfoFile.close()  
-    img1 = (str(imgInfo['img'][imgIndx1]['owner_id']) 
-        + '_' 
-        + str(imgInfo['img'][imgIndx1]['id']))
-    img2 = (str(imgInfo['img'][imgIndx2]['owner_id']) 
-        + '_' 
-        + str(imgInfo['img'][imgIndx2]['id']))
-    print('https://vk.com/photo'+img1)
-    print('https://vk.com/photo'+img2)
+
+def saveURLtoSimilarImages(ownerID, imgId1, imgId2):
+    ''' Save similar images to similarImages.txt '''
+    img1 = '{}_{}'.format(ownerID, imgId1)
+    img2 = '{}_{}'.format(ownerID, imgId2)
+
+    print('https://vk.com/photo{}'.format(img1))
+    print('https://vk.com/photo{}'.format(img2))
     
     f = open('similarImages.txt','a+')
     f.write(img1 + ',' + img2 + ',\n')
@@ -44,7 +40,7 @@ def rmsDifference(img1, img2, size):
     res = math.sqrt( res ) / 256
     return res
 
-def findSimilarImages(imgDir):
+def findSimilarImages(imgDir, ownerID):
     ''' findSimilarImages '''
     imageList = os.listdir(imgDir)
     for index, inImage1 in enumerate(imageList):
@@ -54,4 +50,40 @@ def findSimilarImages(imgDir):
             img2 = Image.open(imgDir + inImage2)
             rmsDiff = rmsDifference(img1.load(), img2.load(), img1.size)
             if rmsDiff < 1:
-                saveURLtoSimilarImages(inImage1.split('.')[0], inImage2.split('.')[0])
+                imgIndx1 = inImage1.split('.')[0]
+                imgIndx2 = inImage2.split('.')[0]                
+                imgInfoFile = open('imgInfo.json', 'r')
+                imgInfo = json.load(imgInfoFile)
+                imgInfoFile.close()
+                saveURLtoSimilarImages(ownerID, imgInfo['img'][imgIndx1]['id'],
+                    imgInfo['img'][imgIndx2]['id'])
+
+
+# may be optimized: https://habrahabr.ru/post/211264/
+def checkHammingDistance(hashString1, hashString2, hashLength, HammingDistance):
+    """
+        Check difference of hashes
+
+        @param hashString1 The hash string
+        @param hashString2 The hash string
+        @return Return True if count of hashes difference < hashLength
+    """
+    if (len(hashString1) != hashLength) or (len(hashString2) != hashLength):
+        raise Exception('One of two strings not a 64-bit hash')
+    differenceSum = 0
+    for indx in range(hashLength):
+        if hashString1[indx] != hashString2[indx]:
+            differenceSum += 1
+        if differenceSum > HammingDistance:
+            return False
+    return True
+
+def findSimilarImagesByPHash(ownerId, album):
+    records = ImagesView().getImagesByAlbumID(album.album_id)
+    for indx, imgInfo1 in enumerate(records):
+        startINDX = indx + 1
+        for imgInfo2 in records[startINDX:]:
+            if checkHammingDistance(imgInfo1.image_hash,
+                    imgInfo2.image_hash, 64, 5):
+                saveURLtoSimilarImages(ownerId, imgInfo1.image_id,
+                    imgInfo2.image_id)

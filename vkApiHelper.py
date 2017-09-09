@@ -1,23 +1,15 @@
-import vk
+
 import json
 import os
-import time
 import sys
+import time
+
+import vk
+
 import settings
 from VKDownloadImage import downloadImage
-from Similar import getThumbnails, findSimilarImages
+from vkBase.models.images import Images
 
-def getVkApi():
-    """ Get vk api with access_token """
-    # get access_token to vk api
-    vkSession = vk.AuthSession(app_id=settings.VK['app_id'],
-        user_login=settings.VK['user_login'],
-        user_password=settings.VK['user_password'],
-        scope=settings.VK['scope'])
-    print('Connection with vk. Stand by ...')
-    vkApi = vk.API(vkSession, v='5.53', timeout=999999999)
-    print('VK api is connected')
-    return vkApi
 
 def clearTempData(imgDir, deleteImgDir, thumbDir, imgInfoFile,
                   deleteImgInfoFile): # clear directory with images
@@ -63,6 +55,18 @@ def clearTempData(imgDir, deleteImgDir, thumbDir, imgInfoFile,
         pass
     print('old files are removed')
 
+def getVkApi():
+    """ Get vk api with access_token """
+    # get access_token to vk api
+    vkSession = vk.AuthSession(app_id=settings.VK['app_id'],
+        user_login=settings.VK['user_login'],
+        user_password=settings.VK['user_password'],
+        scope=settings.VK['scope'])
+    print('Connection with vk. Stand by ...')
+    vkApi = vk.API(vkSession, v='5.53', timeout=999999999)
+    print('VK api is connected')
+    return vkApi
+
 def deleteLostImages(vkApi, OWNER_ID, error404List):
     count = 0
     textCode = ''
@@ -84,19 +88,18 @@ def deleteLostImages(vkApi, OWNER_ID, error404List):
         vkApi.execute(code=textCode) 
         time.sleep(10)
 
-def deleteSimilarImages(vkApi, deleteImgDir, deleteImgInfoFile):
-    print('\nDELETE SIMILAR IMAGES!\n')
-    try:
-        f = open('similarImages.txt', 'r')
-        photoIds = f.read()
-        f.close()
-        photoList = vkApi.photos.getById(photos=photoIds, photo_sizes=1)
-        error404List = downloadImage(photoList,
-            deleteImgDir,
-            deleteImgInfoFile,
-            isBig=True)
-    except FileNotFoundError:
-        pass
+def sortByID(inputStr):
+    return int(inputStr.split('.')[0])
+
+def compareImagesSize(deleteImgDir, imgPath1, imgPath2):
+    if os.path.getsize(deleteImgDir + imgPath1) >=\
+            os.path.getsize(deleteImgDir + imgPath2):
+        biggerImage = imgPath1.split('.')[0]
+        smallerImage = imgPath2.split('.')[0]
+    else:
+        biggerImage = imgPath1.split('.')[0]
+        smallerImage = imgPath2.split('.')[0]
+    return biggerImage, smallerImage
 
 def saveImageCaption(vkApi, OWNER_ID, deleteImgDir, deleteImgInfoFile):
     deleteImageList = os.listdir(deleteImgDir)
@@ -110,16 +113,12 @@ def saveImageCaption(vkApi, OWNER_ID, deleteImgDir, deleteImgInfoFile):
         dImgInfoFile.close()
         i = 0
         while i < len(deleteImageList) - 1:
-            originImage = '-1'
-            deleteImage = '-1'
-            if os.path.getsize(deleteImgDir + deleteImageList[i]) >=\
-                    os.path.getsize(deleteImgDir + deleteImageList[i + 1]):
-                originImage = deleteImageList[i].split('.')[0]
-                deleteImage = deleteImageList[i + 1].split('.')[0]
-            else:
-                originImage = deleteImageList[i + 1].split('.')[0]
-                deleteImage = deleteImageList[i].split('.')[0]
-
+            originImage, deleteImage = compareImagesSize(deleteImgDir,
+                deleteImageList[i], deleteImageList[i + 1])
+            # Save deleteImage id
+            f = open('delete.txt', 'a+')
+            f.write('{}\n'.format(imgInfo['img'][deleteImage]['id']))
+            f.close()
             # Save caption
             originText = imgInfo['img'][originImage]['text']
             deleteText = imgInfo['img'][deleteImage]['text']
@@ -139,16 +138,23 @@ def saveImageCaption(vkApi, OWNER_ID, deleteImgDir, deleteImgInfoFile):
                     photo_id=imgInfo['img'][originImage]['id'],
                     caption=text)
                 time.sleep(2)
-            # Save deleteImage id
-            img1 = str(imgInfo['img'][deleteImage]['id'])
-            f = open('delete.txt', 'a+')
-            f.write(img1 + '\n')
-            f.close()
             i += 2
     except FileNotFoundError:
         pass
 
-def deleteVkImages(vkApi, OWNER_ID):
+def deleteVkImages(vkApi, OWNER_ID, deleteImgDir, deleteImgInfoFile):
+    try:
+        f = open('similarImages.txt', 'r')
+        photoIds = f.read()
+        f.close()
+        photoList = vkApi.photos.getById(photos=photoIds, photo_sizes=1)
+        error404List = downloadImage(photoList,
+            deleteImgDir,
+            deleteImgInfoFile,
+            isBig=True)
+    except FileNotFoundError:
+        pass
+    saveImageCaption(vkApi, OWNER_ID, deleteImgDir, deleteImgInfoFile)
     try:
         deletePhotosFile = open('delete.txt', 'r')
         count = 0
@@ -156,16 +162,14 @@ def deleteVkImages(vkApi, OWNER_ID):
         for deletePhoto in deletePhotosFile:
             count += 1
             deletePhoto = deletePhoto.rstrip('\n')
-            print('https://vk.com/photo'
-                + OWNER_ID
-                + '_'
-                + deletePhoto)
+            print('https://vk.com/photo{}_{}'.format(OWNER_ID, deletePhoto))
             textCode += ('API.photos.delete({"owner_id": "'
                 + OWNER_ID
                 + '", "photo_id": "'
                 + deletePhoto
                 + '"}); ')
-            #api.photos.delete(owner_id = OWNER_ID, photo_id = deletePhoto)
+            with Images() as imagesModel:
+                imagesModel.delete(deletePhoto)
             if count%24 == 0:
                 vkApi.execute(code=textCode)
                 count = 0
@@ -177,52 +181,3 @@ def deleteVkImages(vkApi, OWNER_ID):
         time.sleep(30)
     except FileNotFoundError:
         pass
-
-def main():
-    """ Main entry point for the script """
-    OWNER_ID = settings.VK['owner_id']
-    isResume = settings.VK['isResume']
-    albumBlackList = settings.VK['albumBlackList']
-    resumeAlbumID = settings.VK['resumeAlbumID']
-
-    vkApi = getVkApi()
-    albums = vkApi.photos.getAlbums(owner_id=OWNER_ID)
-
-    imgDir = './img/'
-    thumbDir = './thumb/'
-    thumbnailsSize = 32, 32
-    imgInfoFile = './imgInfo.json'
-    deleteImgDir = './deleteImg/'
-    deleteImgInfoFile = './deleteImgInfo.json'
-
-    for index, album in enumerate(albums['items']):
-        if isResume and album['id'] != resumeAlbumID:
-            continue
-        else:
-            isResume = False
-        if album['id'] in albumBlackList:
-            continue
-
-        clearTempData(imgDir, deleteImgDir, thumbDir, imgInfoFile, deleteImgInfoFile)
-
-        print(album['id'])
-        # get photos list from album['id']
-        photos = vkApi.photos.get(owner_id=OWNER_ID,
-            album_id=album['id'],
-            photo_sizes='1')
-
-        error404List = downloadImage(photos['items'], imgDir,\
-            imgInfoFile, isBig=False)
-        deleteLostImages(vkApi, OWNER_ID, error404List)
-
-        getThumbnails(imgDir, thumbDir, thumbnailsSize)
-        findSimilarImages(thumbDir)
-
-        deleteSimilarImages(vkApi, deleteImgDir, deleteImgInfoFile)
-        deleteVkImages(vkApi, OWNER_ID)
-
-def sortByID(inputStr):
-    return int(inputStr.split('.')[0])
-
-if __name__ == '__main__':
-    sys.exit(main())

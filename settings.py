@@ -10,6 +10,8 @@ DATABASES = {
 }
 
 VK = {
+    'isTwoFactor': False,
+    'api_v': 'API_V',
     'app_id': 'APP_ID',
     'user_login': 'USER_LOGIN',
     'user_password': 'USER_PASSWORD',

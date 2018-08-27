@@ -5,6 +5,7 @@ import sys
 import time
 
 import vk
+import grab
 
 import settings
 from VKDownloadImage import downloadImage
@@ -55,15 +56,35 @@ def clearTempData(imgDir, deleteImgDir, thumbDir, imgInfoFile,
         pass
     print('old files are removed')
 
+def getAccessToken():
+    # uri example "https://oauth.vk.com/authorize?client_id=4916113&scope=photos,wall,groups,offline&redirect_uri=https://oauth.vk.com/blank.html&display=mobile&v=5.53&response_type=token"
+    uri = '{}?v={}&client_id={}&scope={}&redirect_uri={}&{}'.format(
+        'https://oauth.vk.com/authorize', 
+        settings.VK['api_v'], 
+        settings.VK['app_id'],
+        settings.VK['scope'],
+        'https://oauth.vk.com/blank.html',
+        'display=mobile&response_type=token'
+    )
+    print('pls get acces_tocken here:')
+    print(uri)
+    return input('access_token: ')
+
 def getVkApi():
     """ Get vk api with access_token """
-    # get access_token to vk api
-    vkSession = vk.AuthSession(app_id=settings.VK['app_id'],
-        user_login=settings.VK['user_login'],
-        user_password=settings.VK['user_password'],
-        scope=settings.VK['scope'])
+    if settings.VK['isTwoFactor']:
+        # get access_token to vk api
+        access_token = getAccessToken()
+        vkSession = vk.Session(access_token=access_token)
+    else:
+        # get access_token to vk api
+        vkSession = vk.AuthSession(app_id=settings.VK['app_id'],
+            user_login=settings.VK['user_login'],
+            user_password=settings.VK['user_password'],
+            scope=settings.VK['scope'])
+
     print('Connection with vk. Stand by ...')
-    vkApi = vk.API(vkSession, v='5.53', timeout=999999999)
+    vkApi = vk.API(vkSession, v=settings.VK['api_v'], timeout=999999999)
     print('VK api is connected')
     return vkApi
 

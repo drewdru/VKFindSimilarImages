@@ -6,8 +6,6 @@ import vkApiHelper
 from Similar import findSimilarImages, getThumbnails
 from VKDownloadImage import downloadImage
 
-
-
 def main():
     """ Main entry point for the script """
     OWNER_ID = settings.VK['owner_id']

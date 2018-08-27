@@ -5,7 +5,6 @@ import sys
 import time
 
 import vk
-import grab
 
 import settings
 from VKDownloadImage import downloadImage
